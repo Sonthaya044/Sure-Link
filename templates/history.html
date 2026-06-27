@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}ประวัติการตรวจสอบ - SureLink{% endblock %}
+
+{% block content %}
+<section id="page-history" class="page-content pb-24 px-6 w-full">
+    <div class="mx-auto max-w-7xl w-full">
+        <div class="mb-6 flex flex-col gap-4 rounded-2xl border border-outline bg-surface p-5 sm:flex-row sm:items-center sm:justify-between w-full">
+            <div>
+                <p class="text-xs uppercase tracking-wider text-tertiary font-bold">ประวัติการใช้งานเฉพาะเครื่อง</p>
+                <h3 class="text-xl font-bold text-on-surface mt-0.5">ชุดจัดเก็บข้อมูล Local History ของคุณ</h3>
+            </div>
+            <button class="inline-flex items-center gap-1.5 rounded-xl border border-error/30 bg-surface px-4 py-2 text-xs font-semibold text-error hover:bg-error/5 transition" onclick="clearHistory()"><span class="material-symbols-outlined text-sm">delete</span>ล้างประวัติเครื่องนี้</button>
+        </div>
+        <div class="overflow-hidden rounded-2xl border border-outline bg-surface shadow-sm w-full">
+            <div class="w-full overflow-x-auto">
+                <table id="historyTable" class="w-full table-fixed border-collapse text-left text-xs text-on-surface min-w-[600px]">
+                    <thead class="bg-surface-container-highest/60 text-on-surface-variant font-bold border-b border-outline/30">
+                        <tr>
+                            <th class="p-4 w-[20%]">วันเวลาตรวจสอบ</th>
+                            <th class="p-4 w-[45%]">ลิงก์ที่ถูกส่งสแกน</th>
+                            <th class="p-4 w-[20%]">ประเภทภัยคุกคามหลัก</th>
+                            <th class="p-4 w-[15%] text-right sm:text-left">ระดับ Tier</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline/20"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Clear History Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 hidden transition-opacity duration-300">
+        <div id="confirmModalContent" class="w-full max-w-md scale-95 transform rounded-[2rem] border border-outline/50 bg-surface p-8 shadow-2xl transition-transform duration-300">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-error/10 text-error mb-6 mx-auto">
+                <span class="material-symbols-outlined text-3xl">delete_forever</span>
+            </div>
+            <h3 class="text-center text-xl font-bold text-on-surface">ยืนยันการล้างประวัติ?</h3>
+            <p class="mt-2 text-center text-sm text-on-surface-variant">ข้อมูลประวัติการสแกนทั้งหมดในเครื่องนี้จะถูกลบออกถาวร และไม่สามารถเรียกคืนได้</p>
+            <div class="mt-8 flex flex-col gap-3">
+                <button onclick="executeClearHistory()" class="w-full rounded-2xl bg-error px-6 py-3.5 text-sm font-bold text-white shadow-lg hover:brightness-110 transition">ยืนยัน ลบทั้งหมด</button>
+                <button onclick="closeConfirmModal()" class="w-full rounded-2xl border border-outline px-6 py-3.5 text-sm font-bold text-on-surface-variant hover:bg-surface-container transition">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 hidden transition-opacity duration-300">
+        <div id="detailModalContent" class="relative w-full max-w-2xl scale-95 transform rounded-[2.5rem] border border-outline/50 bg-surface p-6 sm:p-10 shadow-2xl transition-transform duration-300 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeDetailModal()" class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-highest text-on-surface-variant hover:text-error transition">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <p class="text-[10px] uppercase tracking-[0.2em] text-tertiary font-bold mb-1">รายละเอียดประวัติ</p>
+            <h3 id="detailModalUrl" class="text-xl font-bold text-on-surface break-all mb-1 pr-10 leading-tight">URL</h3>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-8">
+                <p id="detailModalDomain" class="text-sm text-on-surface-variant">domain.com</p>
+                <div class="h-1 w-1 rounded-full bg-outline"></div>
+                <p id="detailModalTime" class="text-xs text-on-surface-variant opacity-70">time</p>
+            </div>
+
+            <div id="detailRiskCard" class="relative overflow-hidden rounded-[2rem] border p-6 mb-6 transition-all duration-300">
+                <span id="detailBgIcon" class="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] opacity-5">shield</span>
+                <div class="flex items-center gap-6 relative z-10">
+                    <div id="detailRiskIconContainer" class="flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg shrink-0">
+                        <span id="detailStatusIcon" class="material-symbols-outlined text-3xl filled">shield</span>
+                    </div>
+                    <div>
+                        <p id="detailRiskStatus" class="text-2xl font-black uppercase tracking-tight leading-none">SAFE</p>
+                        <p id="detailThreatType" class="mt-1 text-sm font-medium opacity-80">ไม่พบสิ่งผิดปกติ</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <div class="rounded-2xl bg-surface-container-highest/30 p-4 border border-outline/20">
+                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">การตรวจพบ</p>
+                    <p class="text-2xl font-bold text-on-surface"><span id="detailModalMalicious">0</span> <span class="text-xs font-medium text-on-surface-variant">Engines</span></p>
+                </div>
+            </div>
+
+            <div id="detailMitigationSection">
+                <div class="flex items-center gap-2 mb-3">
+                    <span id="detailMitigationIcon" class="material-symbols-outlined">lightbulb</span>
+                    <h4 id="detailMitigationTitle" class="font-bold">คำแนะนำ</h4>
+                </div>
+                <div id="detailMitigationContent" class="space-y-2"></div>
+            </div>
+
+            <div class="mt-10 flex gap-3">
+                <a href="#" id="detailViewFullReport" class="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-on-surface text-surface py-4 text-sm font-bold transition hover:opacity-90">
+                    ดูรายงานฉบับเต็ม <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </a>
+                <button onclick="closeDetailModal()" class="px-8 rounded-2xl border border-outline text-on-surface-variant text-sm font-bold hover:bg-surface-container transition">ปิด</button>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

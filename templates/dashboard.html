@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}ผลการตรวจสอบ - SureLink{% endblock %}
+
+{% block content %}
+<section id="page-dashboard" class="page-content pb-24 px-6 w-full">
+    <!-- เก็บข้อมูล JSON สำหรับ JS -->
+    <script id="scan-data" type="application/json">{{ data|tojson }}</script>
+
+    <div class="mx-auto max-w-7xl w-full">
+        <div id="loadingState" class="flex flex-col items-center justify-center rounded-3xl border border-outline bg-surface p-12 text-center shadow-lg hidden w-full">
+            <span class="material-symbols-outlined text-5xl text-tertiary animate-spin mb-3">autorenew</span>
+            <p class="text-base font-bold text-on-surface">กำลังตรวจสอบลิงก์...</p>
+            <p class="mt-1 text-on-surface-variant text-xs">ระบบกำลังวิเคราะห์ความปลอดภัย โปรดรอสักครู่</p>
+        </div>
+        <!-- Persistent Search Bar for new URL -->
+        <div class="flex justify-center -mt-6 mb-6 relative z-20 w-full">
+            <form action="{{ url_for('scan_url') }}" method="POST" id="scanForm" 
+                  class="flex items-center gap-3 w-full">
+                
+                <!-- Input Container -->
+                <div class="flex-1 flex items-center bg-surface rounded-full shadow-sm border border-outline/50 p-1 transition-colors hover:shadow-md focus-within:border-primary">
+                    <div class="pl-4 text-on-surface-variant shrink-0 flex items-center">
+                        <span class="material-symbols-outlined text-xl sm:text-2xl">search</span>
+                    </div>
+                    
+                    <input id="searchInput" name="url" type="text" autocomplete="url" 
+                           placeholder="สแกน URL ใหม่อีกครั้ง..." required 
+                           class="w-full border-none focus:ring-0 text-on-surface placeholder-on-surface-variant/70 bg-transparent py-2 px-3 outline-none" />
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" id="scanBtn" class="bg-gradient-to-r from-tertiary to-primary hover:brightness-110 text-white font-semibold py-3 px-8 rounded-full shadow-sm transition duration-200 whitespace-nowrap flex items-center justify-center shrink-0">
+                    <span id="btnText" class="uppercase">Scan</span>
+                    <span id="btnSpinner" class="material-symbols-outlined animate-spin hidden text-[16px] ml-1">autorenew</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="resultContainer" class="w-full">
+            <div class="bg-surface-container-low rounded-2xl shadow-md border border-outline p-6 sm:p-8 w-full">
+                <!-- Top Section of Card: Header and Badge -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 w-full">
+                    <div>
+                        <div class="text-tertiary font-semibold text-sm mb-1 tracking-wide">ผลการสแกน</div>
+                        <h2 class="text-2xl sm:text-3xl font-bold text-on-surface">ระดับความเสี่ยงของลิงก์</h2>
+                    </div>
+                    <!-- Status Badge -->
+                    <div id="statusBadge" class="bg-surface-container text-on-surface font-bold py-3 px-6 rounded-xl flex items-center gap-2 shadow-sm whitespace-nowrap shrink-0">
+                        <span id="statusIcon" class="material-symbols-outlined text-xl filled">shield</span>
+                        <span id="riskStatus" class="uppercase">Safe</span>
+                    </div>
+                </div>
+                
+                <!-- Bottom Section of Card: Data Boxes -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                    <!-- Left Data Box: URL -->
+                    <div class="bg-surface-container rounded-xl p-4">
+                        <div class="text-on-surface-variant text-sm mb-1">ลิงก์ที่ตรวจสอบ</div>
+                        <h3 id="scannedUrl" class="text-on-surface font-medium break-all">{{ data.url }}</h3>
+                    </div>
+                    <!-- Right Data Box: Domain/IP -->
+                    <div class="bg-surface-container rounded-xl p-4">
+                        <div class="text-on-surface-variant text-sm mb-1">ชื่อโดเมน</div>
+                        <h3 id="targetDomain" class="text-on-surface font-medium break-all">{{ data.domain }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 grid gap-4 lg:grid-cols-[4fr_3fr] items-stretch w-full">
+                <div class="flex flex-col rounded-2xl border border-outline bg-surface p-5 shadow-sm">
+                    <h3 class="text-base font-bold text-on-surface mb-4">ข้อมูลทางเทคนิค</h3>
+                    <div class="grid grid-cols-3 gap-3 flex-1 items-stretch">
+                        <div class="rounded-xl bg-surface-container-highest/40 p-4 flex flex-col items-center justify-center text-center"><p class="text-[10px] text-on-surface-variant">ภัยคุกคาม</p><p id="maliciousCount" class="mt-1 text-3xl font-bold text-error">0</p></div>
+                        <div class="rounded-xl bg-surface-container-highest/40 p-4 flex flex-col items-center justify-center text-center overflow-hidden"><p class="text-[10px] text-on-surface-variant">Protocol</p><p id="httpProtocol" class="mt-1 text-xs font-bold text-on-surface">HTTP</p></div>
+                        <div class="rounded-xl bg-surface-container-highest/40 p-4 flex flex-col items-center justify-center text-center overflow-hidden"><p class="text-[10px] text-on-surface-variant">Port</p><p id="httpPort" class="mt-1 text-xs font-bold text-on-surface">80</p></div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col rounded-2xl border border-outline bg-surface p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-xl">pie_chart</span>
+                            <h3 class="text-sm font-bold text-on-surface">ประเภทความเสี่ยงที่พบ</h3>
+                        </div>
+                        <div id="activeFilterBadge" class="hidden items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
+                            <span id="filterLabel">Phishing</span>
+                            <button onclick="clearThreatFilter()" class="flex h-4 w-4 items-center justify-center rounded-full hover:bg-primary/20 transition">
+                                <span class="material-symbols-outlined text-[12px]">close</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="chartContainer" class="hidden relative h-[180px] w-full flex-col justify-center rounded-xl bg-surface-container-highest/20 p-2">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                    <p id="chartHint" class="hidden mt-2 text-[10px] text-on-surface-variant italic text-center opacity-70">💡 คลิกที่แท่งกราฟเพื่อกรองรายการด้านล่าง</p>
+                    <div id="noThreatMessage" class="flex-1 rounded-xl border border-outline bg-surface-container-highest/20 p-4 text-center text-xs text-on-surface-variant flex items-center justify-center min-h-[120px]">ไม่พบความผิดปกติ ลิงก์นี้ค่อนข้างปลอดภัย</div>
+                </div>
+            </div>
+
+            <div id="mitigationSection" class="mt-4 w-full rounded-2xl border border-outline bg-surface p-5 shadow-sm hidden"><div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-xl" id="mitigationIcon">lightbulb</span><h3 class="text-sm font-bold text-on-surface" id="mitigationTitle">คำแนะนำเบื้องต้น</h3></div><div id="mitigationContent" class="text-xs ml-1"></div></div>
+
+            <div id="fullLogSection" class="mt-4 hidden w-full rounded-2xl border border-outline bg-surface p-5 shadow-sm flex-col md:flex-row items-center md:items-start gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div class="flex flex-col items-center text-center md:text-left md:items-start md:min-w-[180px] shrink-0"><span class="material-symbols-outlined text-tertiary text-2xl mb-1">reviews</span><h3 class="text-sm font-bold text-on-surface">แอนตี้ไวรัส<br>ที่พบความเสี่ยง</h3></div>
+                <div id="scanLog" class="grid gap-3 w-full grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 flex-1"></div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,6 @@
+Flask
+Flask-Limiter
+python-dotenv
+requests
+beautifulsoup4
+gunicorn
