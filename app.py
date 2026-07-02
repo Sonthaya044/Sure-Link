@@ -21,7 +21,12 @@ VT_API_KEY = os.getenv("VT_API_KEY")
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[logging.FileHandler(LOG_PATH, mode='a', encoding='utf-8')],
+    force=True
+)
 limiter = Limiter(get_remote_address, app=app, default_limits=["100 per day"], storage_uri="memory://")
 
 def get_db_connection():
