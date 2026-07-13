@@ -94,7 +94,8 @@ def search_db(url):
     try:
         row = conn.execute('SELECT * FROM url_cache WHERE url = ?', (url,)).fetchone()
         if row:
-            if (time.time() - row['scanned_timestamp']) > 604800: return None
+            if (time.time() - row['scanned_timestamp']) > 86400:
+                return None
             try:
                 cached_data = json.loads(row['raw_data'])
                 if not isinstance(cached_data, dict): cached_data = {}
@@ -142,13 +143,18 @@ def scan_with_virustotal(url):
 def save_to_db(data):
     conn = get_db_connection()
     try:
+        current_time = time.time()
         conn.execute('''
             INSERT INTO url_cache (url, domain, tier, malicious_count, raw_data, scanned_timestamp, scan_count)
             VALUES (?, ?, ?, ?, ?, ?, 1)
             ON CONFLICT(url) DO UPDATE SET
-                domain=excluded.domain, tier=excluded.tier, malicious_count=excluded.malicious_count,
-                raw_data=excluded.raw_data, scanned_timestamp=excluded.scanned_timestamp, scan_count=url_cache.scan_count + 1
-        ''', (data['url'], data['domain'], data['tier'], data['malicious'], json.dumps(data), time.time()))
+                domain=excluded.domain,
+                tier=excluded.tier,
+                malicious_count=excluded.malicious_count,
+                raw_data=excluded.raw_data,
+                scanned_timestamp=excluded.scanned_timestamp,
+                scan_count=url_cache.scan_count + 1
+        ''', (data['url'], data['domain'], data['tier'], data['malicious'], json.dumps(data), current_time))
         conn.commit()
     except: conn.rollback()
     finally: conn.close()
