@@ -66,7 +66,7 @@ def search_db(url):
         ).fetchone()
         
         if row:
-            if (time.time() - row['scanned_timestamp']) > 604800:
+            if (time.time() - row['scanned_timestamp']) > 86400:
                 return None
             try:
                 cached_data = json.loads(row['raw_data'])
