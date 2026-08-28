@@ -177,7 +177,7 @@ def aggregate_analytics():
     conn = get_db_connection()
     try:
         table_check = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='url_cache'").fetchone()
-        if not table_check: return {'total_scans': 0, 'tier_counts': {}, 'top_domains': [], 'top_sites': [], 'top_threats': []}
+        if not table_check: return {'total_scans': 0, 'tier_counts': {}, 'top_domains': [], 'top_sites': [], 'recent_scans': [], 'top_threats': []}
 
         total_scans = conn.execute('SELECT SUM(scan_count) AS total FROM url_cache').fetchone()['total'] or 0
         tier_rows = conn.execute('SELECT tier, COUNT(*) AS count FROM url_cache GROUP BY tier').fetchall()
@@ -185,6 +185,7 @@ def aggregate_analytics():
 
         top_domains = conn.execute("SELECT domain, SUM(scan_count) AS count FROM url_cache WHERE domain != 'N/A' AND domain != '' GROUP BY domain ORDER BY count DESC LIMIT 8").fetchall()
         top_sites = conn.execute('SELECT url, scan_count AS scanned_count FROM url_cache ORDER BY scan_count DESC LIMIT 8').fetchall()
+        recent_scans = conn.execute('SELECT url, domain, tier, scan_count, scanned_timestamp FROM url_cache ORDER BY scanned_timestamp DESC LIMIT 12').fetchall()
 
         threat_counts = {}
         threat_rows = conn.execute('SELECT raw_data FROM url_cache WHERE tier IN ("High", "Medium") AND raw_data != ""').fetchall()
@@ -211,13 +212,17 @@ def aggregate_analytics():
             'total_scans': total_scans, 'tier_counts': tier_counts,
             'top_domains': [{'domain': r['domain'], 'count': r['count']} for r in top_domains],
             'top_sites': [{'url': r['url'], 'scanned_count': r['scanned_count']} for r in top_sites],
+            'recent_scans': [{'url': r['url'], 'domain': r['domain'], 'tier': r['tier'], 'scan_count': r['scan_count'], 'scanned_timestamp': r['scanned_timestamp']} for r in recent_scans],
             'top_threats': [{'threat': k, 'count': v} for k, v in sorted(threat_counts.items(), key=lambda x: x[1], reverse=True)]
         }
-    except: return {'total_scans': 0, 'tier_counts': {}, 'top_domains': [], 'top_sites': [], 'top_threats': []}
+    except: return {'total_scans': 0, 'tier_counts': {}, 'top_domains': [], 'top_sites': [], 'recent_scans': [], 'top_threats': []}
     finally: conn.close()
 
 @app.route('/analytics')
 def analytics(): return jsonify(aggregate_analytics())
+
+@app.route('/insights')
+def insights(): return render_template('analytics.html')
 
 @app.route('/')
 def index(): return render_template('home.html')
@@ -229,16 +234,18 @@ def history(): return render_template('history.html')
 @limiter.limit("10 per minute")
 def scan_url():
     url = request.form.get('url', '').strip()
+    from_history = request.form.get('from_history') == '1'
     if not url: return render_template('home.html', error="กรุณากรอก URL ที่ต้องการสแกน")
     if not url.startswith(('http://', 'https://')): url = 'http://' + url
 
     try:
         cached = search_db(url)
         if cached:
-            conn = get_db_connection()
-            conn.execute('UPDATE url_cache SET scan_count = scan_count + 1 WHERE url = ?', (url,))
-            conn.commit()
-            conn.close()
+            if not from_history:
+                conn = get_db_connection()
+                conn.execute('UPDATE url_cache SET scan_count = scan_count + 1 WHERE url = ?', (url,))
+                conn.commit()
+                conn.close()
             return render_template('dashboard.html', data=cached)
 
         data = scan_with_virustotal(url)
@@ -251,4 +258,4 @@ def scan_url():
 def ratelimit_handler(e): return render_template('home.html', error="คุณตรวจสอบลิงก์ถี่เกินไป กรุณารอสักครู่")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5004)

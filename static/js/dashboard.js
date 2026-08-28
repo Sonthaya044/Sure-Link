@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawData = document.getElementById('scan-data').textContent;
     const data = JSON.parse(rawData);
     updateDashboardUI(data);
-    saveToHistory(data); // 🟢 บันทึกเข้าประวัติ
+    const openingHistoryReport = sessionStorage.getItem('openingHistoryReport') === 'true';
+    sessionStorage.removeItem('openingHistoryReport');
+    if (!openingHistoryReport) saveToHistory(data);
 });
 
 window.addEventListener('themeChanged', () => {
@@ -126,9 +128,9 @@ function updateDashboardUI(data) {
 
     if (data.tier === 'High') {
         statusBadge.classList.add('bg-error', 'text-white');
-        statusIcon.textContent = "gpp_bad"; riskStatus.textContent = `High (${pThreat})`;
+        statusIcon.textContent = "gpp_bad"; riskStatus.textContent = `อันตราย (${pThreat})`;
         malCountEl.className = "mt-1 text-4xl font-bold font-headline leading-none text-error drop-shadow-sm";
-        mitigationSection.className = "mt-6 w-full rounded-[2rem] border border-error/40 bg-error/10 p-6 sm:p-8 shadow-lg";
+        mitigationSection.className = "mt-6 w-full rounded-[2rem] border border-error/40 bg-error/10 p-6 sm:p-8 shadow-lg lg:col-span-12";
         mitigationIcon.className = "material-symbols-outlined text-error text-3xl shrink-0 filled"; mitigationIcon.textContent = "warning";
         mitigationTitle.className = "text-xl sm:text-2xl font-bold text-error"; mitigationTitle.textContent = "คำแนะนำเบื้องต้น";
         mitigationContent.innerHTML = `<ul class="list-none pl-2 space-y-3 mt-2 text-error/90 font-medium text-sm sm:text-base">
@@ -138,9 +140,9 @@ function updateDashboardUI(data) {
         </ul>`;
     } else if (data.tier === 'Medium') {
         statusBadge.classList.add('bg-warning', 'text-white');
-        statusIcon.textContent = "warning"; riskStatus.textContent = `Medium (${pThreat})`;
+        statusIcon.textContent = "warning"; riskStatus.textContent = `ควรระวัง (${pThreat})`;
         malCountEl.className = "mt-1 text-4xl font-bold font-headline leading-none text-warning drop-shadow-sm";
-        mitigationSection.className = "mt-6 w-full rounded-[2rem] border border-warning/40 bg-warning/10 p-6 sm:p-8 shadow-lg";
+        mitigationSection.className = "mt-6 w-full rounded-[2rem] border border-warning/40 bg-warning/10 p-6 sm:p-8 shadow-lg lg:col-span-12";
         mitigationIcon.className = "material-symbols-outlined text-warning text-3xl shrink-0 filled"; mitigationIcon.textContent = "error_outline";
         mitigationTitle.className = "text-xl sm:text-2xl font-bold text-warning"; mitigationTitle.textContent = "คำแนะนำเบื้องต้น";
         mitigationContent.innerHTML = `<ul class="list-none pl-2 space-y-3 mt-2 text-warning/90 font-medium text-sm sm:text-base">
@@ -149,9 +151,9 @@ function updateDashboardUI(data) {
         </ul>`;
     } else {
         statusBadge.classList.add('bg-tertiary', 'text-white', 'dark:text-[#061428]');
-        statusIcon.textContent = "verified_user"; riskStatus.textContent = "Low (ปลอดภัย)";
+        statusIcon.textContent = "verified_user"; riskStatus.textContent = "ปลอดภัย";
         malCountEl.className = "mt-1 text-4xl font-bold font-headline leading-none text-on-surface drop-shadow-sm";
-        mitigationSection.className = "mt-6 w-full rounded-[2rem] border border-tertiary/40 bg-tertiary/10 p-6 sm:p-8 shadow-lg";
+        mitigationSection.className = "mt-6 w-full rounded-[2rem] border border-tertiary/40 bg-tertiary/10 p-6 sm:p-8 shadow-lg lg:col-span-12";
         mitigationIcon.className = "material-symbols-outlined text-tertiary text-3xl shrink-0 filled"; mitigationIcon.textContent = "check_circle";
         mitigationTitle.className = "text-xl sm:text-2xl font-bold text-tertiary"; mitigationTitle.textContent = "คำแนะนำและวิธีป้องกัน";
         mitigationContent.innerHTML = `<ul class="list-none pl-2 space-y-3 mt-2 text-tertiary/90 font-medium text-sm sm:text-base">

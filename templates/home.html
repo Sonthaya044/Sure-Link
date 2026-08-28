@@ -1,110 +1,34 @@
 {% extends "base.html" %}
-
-{% block title %}หน้าแรก - SureLink{% endblock %}
-
+{% block title %}SureLink | ตรวจสอบลิงก์อย่างมั่นใจ{% endblock %}
 {% block content %}
-<section class="w-full">
-    <div class="mx-auto grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-x-10 lg:gap-x-14 gap-y-8 lg:gap-y-6 px-4 sm:px-6 pb-12 max-w-7xl w-full lg:content-center">
-        <div class="space-y-6 sm:space-y-8 order-1 lg:col-start-1 lg:row-start-1 lg:self-end w-full">
-            <h2 class="text-3xl sm:text-4xl font-bold leading-tight text-on-surface md:text-5xl break-words w-full">
-                ตรวจสอบความปลอดภัยของลิงก์ และป้องกันภัยออนไลน์
-            </h2>
+<section class="relative overflow-hidden px-4 pb-20 pt-12 sm:px-8 sm:pt-20">
+    <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(16,163,127,.16),transparent_32%),radial-gradient(circle_at_90%_25%,rgba(245,158,11,.12),transparent_30%)]"></div>
+    <div class="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
+        <div class="page-content">
+            <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"><span class="online-dot"></span> เครื่องมือวิเคราะห์ลิงก์</div>
+            <h1 class="max-w-3xl text-5xl font-bold leading-[1.05] tracking-[-.045em] text-on-surface sm:text-7xl">เช็กให้ชัวร์<br><span class="text-primary">ก่อนคลิกทุกครั้ง</span></h1>
+            <p class="mt-6 max-w-xl text-base leading-8 text-on-surface-variant sm:text-lg">SureLink ช่วยประเมินความเสี่ยงของ URL ด้วยฐานข้อมูลภัยคุกคาม เพื่อให้คุณตัดสินใจได้อย่างมั่นใจก่อนเปิดเว็บไซต์</p>
+            <div class="mt-9">
+                <form action="{{ url_for('scan_url') }}" method="POST" id="scanForm" class="flex flex-col gap-3 sm:flex-row">
+                    <div class="scan-search-shell flex-1"><span class="material-symbols-outlined">search</span><input name="url" type="text" autocomplete="url" placeholder="วาง URL ที่นี่..." required class="w-full bg-transparent outline-none" /></div>
+                    <button type="submit" id="scanBtn" class="scan-search-button flex items-center justify-center gap-2 bg-primary px-7 text-sm font-semibold text-white transition hover:brightness-95"><span class="material-symbols-outlined text-[20px]">radar</span><span id="btnText">ตรวจสอบลิงก์</span><span id="btnSpinner" class="radar-sweep hidden">radar</span></button>
+                </form>
+                {% if error %}<p class="mt-3 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{{ error }}</p>{% endif %}
+                <p class="mt-3 px-1 text-xs text-on-surface-variant">รองรับ URL ที่ขึ้นต้นด้วย http:// หรือ https://</p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2 text-xs text-on-surface-variant"><span class="rounded-full border border-outline bg-surface px-3 py-2">VirusTotal intelligence</span><span class="rounded-full border border-outline bg-surface px-3 py-2">ไม่ต้องสมัครสมาชิก</span><span class="rounded-full border border-outline bg-surface px-3 py-2">บันทึกผลในเครื่อง</span></div>
         </div>
-
-        <div class="rounded-[2rem] border border-outline/50 bg-surface/90 p-6 sm:p-8 shadow-xl backdrop-blur-xl w-full order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center">
-            <div class="space-y-3 sm:space-y-4">
-                <p class="text-xs sm:text-sm uppercase tracking-[0.24em] text-tertiary font-bold">เริ่มต้นตรวจสอบ</p>
-                <h3 class="text-2xl sm:text-3xl font-bold text-on-surface break-words">วาง URL เพื่อสแกนระบบ</h3>
-            </div>
-            
-            <form action="{{ url_for('scan_url') }}" method="POST" id="scanForm" class="mt-6 sm:mt-8 space-y-4">
-                <label class="text-sm font-medium text-on-surface-variant">URL ที่ต้องการตรวจสอบ</label>
-                <div class="flex h-12 sm:h-14 items-center gap-3 overflow-hidden rounded-2xl border border-outline/50 bg-surface-container px-4 focus-within:border-primary transition-colors">
-                    <span class="material-symbols-outlined text-on-surface-variant">link</span>
-                    <input name="url" type="text" autocomplete="url" placeholder="http://example.com" required class="w-full bg-transparent text-sm sm:text-base text-on-surface outline-none placeholder:text-on-surface-variant" />
-                </div>
-                {% if error %}
-                    <p class="text-error text-sm text-center font-medium">{{ error }}</p>
-                {% endif %}
-                <button type="submit" id="scanBtn" class="w-full rounded-2xl bg-gradient-to-r from-tertiary to-primary px-6 py-3 sm:py-4 text-sm font-bold uppercase tracking-[0.18em] text-white shadow-md transition-all hover:brightness-110 hover:shadow-xl hover:-translate-y-0.5 flex justify-center items-center gap-2">
-                    <span id="btnText">Scan Now</span>
-                    <span id="btnSpinner" class="material-symbols-outlined animate-spin hidden">autorenew</span>
-                </button>
-            </form>
-
-            <div class="mt-6 sm:mt-8 space-y-3 rounded-[1.5rem] border border-outline/50 bg-surface-container-low p-4 sm:p-5 text-xs sm:text-sm text-on-surface-variant">
-                <div class="flex items-center gap-2 break-words"><span class="material-symbols-outlined text-tertiary shrink-0">verified</span><span>เชื่อมต่อ API ตรวจสอบแบบเรียลไทม์</span></div>
-                <div class="flex items-center gap-2 break-words"><span class="material-symbols-outlined text-tertiary shrink-0">history</span><span>เก็บประวัติสแกนย้อนกลับได้</span></div>
-            </div>
-        </div>
-
-        <div class="space-y-6 sm:space-y-8 order-3 lg:col-start-1 lg:row-start-2 lg:self-start lg:mt-4 w-full">
-            <p class="max-w-xl text-base sm:text-lg leading-relaxed text-on-surface-variant break-words w-full">วิเคราะห์โครงสร้าง URL ร่วมกับฐานข้อมูลภัยคุกคามสากล ขอบคุณชุดวิเคราะห์อัจฉริยะจาก VirusTotal API</p>
-            <div class="grid gap-4 sm:grid-cols-2 w-full lg:max-w-2xl">
-                <div class="rounded-[1.75rem] border border-outline/50 bg-surface p-5 sm:p-6 shadow-lg"><span class="material-symbols-outlined text-tertiary text-3xl">bolt</span><h3 class="mt-3 sm:mt-4 text-lg sm:text-xl font-semibold text-on-surface">ผลเร็ว</h3><p class="mt-2 text-sm text-on-surface-variant">ดึงผลจาก Cache ไวในเสี้ยววินาที</p></div>
-                <div class="rounded-[1.75rem] border border-outline/50 bg-surface p-5 sm:p-6 shadow-lg"><span class="material-symbols-outlined text-primary text-3xl">shield</span><h3 class="mt-3 sm:mt-4 text-lg sm:text-xl font-semibold text-on-surface">แม่นยำ</h3><p class="mt-2 text-sm text-on-surface-variant">คัดแยกแอนตี้ไวรัสครอบคลุม 11 หมวดหมู่</p></div>
-            </div>
-        </div>
-    </div> 
-
-    <div id="analyticsSection" class="w-full border-t border-outline/20 bg-surface-container-low py-12 px-4 sm:px-6">
-        <div class="mx-auto max-w-7xl w-full">
-            <div class="mb-8 pb-6 border-b border-outline/20">
-                <p class="text-base uppercase tracking-[0.2em] text-tertiary font-bold">รายงานสถิติ</p>
-                <h3 class="text-xl font-bold text-on-surface mt-1">ภาพรวมการสแกนทั้งระบบ</h3>
-            </div>
-            
-            <div id="analyticsError" class="hidden rounded-xl border border-error/30 bg-error/10 p-4 text-sm text-error mb-6">เกิดข้อผิดพลาดในการโหลดสถิติ</div>
-
-            <!-- Skeleton Loading State -->
-            <div id="analyticsSkeleton" class="animate-pulse">
-                <div class="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {% for i in range(4) %}
-                    <div class="rounded-[1.25rem] border border-outline/30 bg-surface-container-highest/20 p-5">
-                        <div class="h-3 w-20 bg-on-surface/10 rounded-full mb-3"></div>
-                        <div class="h-8 w-24 bg-on-surface/20 rounded-lg"></div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="mb-8 rounded-[1.25rem] border border-outline/30 bg-surface-container-highest/20 p-6 h-[250px]">
-                    <div class="h-4 w-32 bg-on-surface/10 rounded-full mb-8"></div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-8">
-                        {% for i in range(4) %}
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="h-20 w-20 rounded-full border-4 border-on-surface/5 bg-on-surface/5"></div>
-                            <div class="h-3 w-16 bg-on-surface/10 rounded-full"></div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Real Content (Initially Hidden) -->
-            <div id="analyticsContent" class="hidden opacity-0 transition-opacity duration-700">
-                <div class="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="rounded-[1.25rem] border border-outline/30 bg-surface-container-highest/20 p-5"><div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-primary text-xl">query_stats</span><p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">จำนวนตรวจสอบ</p></div><p id="stat-total" class="text-3xl font-bold text-on-surface font-headline">0</p></div>
-                    <div class="rounded-[1.25rem] border border-error/20 bg-error/5 p-5"><div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-error text-xl">gpp_bad</span><p class="text-[10px] text-error/70 font-bold uppercase tracking-wider">วิกฤต (High)</p></div><p id="stat-high" class="text-3xl font-bold text-error font-headline">0</p></div>
-                    <div class="rounded-[1.25rem] border border-warning/20 bg-warning/5 p-5"><div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-warning text-xl">warning</span><p class="text-[10px] text-warning/70 font-bold uppercase tracking-wider">เฝ้าระวัง (Medium)</p></div><p id="stat-medium" class="text-3xl font-bold text-warning font-headline">0</p></div>
-                    <div class="rounded-[1.25rem] border border-tertiary/20 bg-tertiary/5 p-5"><div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-tertiary text-xl">verified_user</span><p class="text-[10px] text-tertiary/70 font-bold uppercase tracking-wider">ปลอดภัย (Safe)</p></div><p id="stat-low" class="text-3xl font-bold text-tertiary font-headline">0</p></div>
-                </div>
-
-                <div class="mb-8 grid gap-4 grid-cols-1">
-                    <div class="rounded-[1.25rem] border border-outline/30 bg-surface-container-highest/20 p-6">
-                        <p class="text-base font-semibold text-on-surface mb-6">สรุปรูปแบบภัยคุกคาม</p>
-                        <div id="threatChartsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center w-full min-h-[160px]"></div>
-                    </div>
-                </div>
-
-                <div class="mb-8 grid gap-4 grid-cols-1 lg:grid-cols-2">
-                    <div class="rounded-[1.25rem] border border-outline/30 bg-surface-container-highest/20 p-6"><p class="text-sm font-semibold text-on-surface mb-4">โดเมนที่ตรวจสอบมากที่สุด</p><div class="relative h-[280px] w-full"><canvas id="domainChart"></canvas></div></div>
-                    <div class="rounded-[1.25rem] border border-outline/30 bg-surface-container-highest/20 p-6"><p class="text-sm font-semibold text-on-surface mb-4">URL ที่ตรวจสอบมากที่สุด</p><div class="relative h-[280px] w-full"><canvas id="topSitesChart"></canvas></div></div>
-                </div>
+        <div class="relative hidden min-h-[470px] lg:block">
+            <div class="absolute right-4 top-0 h-[400px] w-[400px] rounded-full border border-primary/20"></div><div class="absolute right-20 top-16 h-[280px] w-[280px] rounded-full border border-warning/30"></div>
+            <div class="absolute right-0 top-10 w-[430px] rotate-3 rounded-3xl border border-outline bg-surface/90 p-6 shadow-2xl backdrop-blur-xl">
+                <div class="flex items-center justify-between border-b border-outline pb-4"><div class="flex items-center gap-3"><span id="demoStatusIcon" class="material-symbols-outlined rounded-xl bg-primary/10 p-2.5 text-primary text-2xl">shield</span><div><p class="text-base font-semibold">ผลการตรวจสอบ</p><p class="text-xs text-on-surface-variant">secure connection</p></div></div><span id="demoRiskLabel" class="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">ปลอดภัย</span></div>
+                <div class="mt-5 rounded-2xl bg-surface-container p-4"><p class="text-[11px] uppercase tracking-[.18em] text-on-surface-variant">Target URL</p><p id="demoUrl" class="min-h-5 truncate font-mono text-sm text-primary" aria-live="polite"></p><div class="mt-5 h-2.5 overflow-hidden rounded-full bg-outline"><div id="demoRiskBar" class="h-full w-[18%] rounded-full bg-primary transition-all duration-300"></div></div><div class="mt-2 flex justify-between text-xs text-on-surface-variant"><span>ระดับความเสี่ยง</span><strong id="demoRiskText" class="text-primary">ความเสี่ยงต่ำ</strong></div><p id="demoThreatType" class="mt-3 text-xs text-on-surface-variant">ไม่พบภัยคุกคาม</p></div>
+                <div class="mt-4 grid grid-cols-3 gap-2 text-xs"><div class="rounded-xl border border-outline p-3"><strong class="block text-xl">72</strong>Engines</div><div class="rounded-xl border border-outline p-3"><strong class="block text-xl text-primary">0</strong>Threats</div><div class="rounded-xl border border-outline p-3"><strong class="block text-xl">1.2s</strong>Scan time</div></div>
             </div>
         </div>
     </div>
 </section>
+<section class="border-y border-outline bg-surface-container-low px-4 py-16 sm:px-8"><div class="mx-auto grid max-w-7xl gap-8 md:grid-cols-3"><div><p class="text-xs font-semibold uppercase tracking-[.2em] text-primary">01 / วิเคราะห์</p><h2 class="mt-3 text-2xl font-bold">รู้จักลิงก์ให้มากขึ้น</h2><p class="mt-3 text-sm leading-7 text-on-surface-variant">ตรวจสอบโดเมนและสัญญาณผิดปกติจากแหล่งข้อมูลความปลอดภัยที่เชื่อถือได้</p></div><div><p class="text-xs font-semibold uppercase tracking-[.2em] text-primary">02 / เข้าใจ</p><h2 class="mt-3 text-2xl font-bold">อ่านผลได้ในไม่กี่วินาที</h2><p class="mt-3 text-sm leading-7 text-on-surface-variant">สรุประดับความเสี่ยงและประเภทภัยคุกคามด้วยภาษาที่เข้าใจง่าย</p></div><div><p class="text-xs font-semibold uppercase tracking-[.2em] text-primary">03 / ป้องกัน</p><h2 class="mt-3 text-2xl font-bold">ตัดสินใจก่อนสายเกินไป</h2><p class="mt-3 text-sm leading-7 text-on-surface-variant">เก็บประวัติการตรวจสอบไว้ในอุปกรณ์ เพื่อย้อนดูรายงานได้ทุกเมื่อ</p></div></div></section>
+<section id="analyticsSection" class="px-4 py-20 sm:px-8"><div class="mx-auto max-w-7xl"><div class="mb-6 flex items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[.2em] text-primary">Activity monitor</p><h2 class="mt-2 text-3xl font-bold">ภาพรวมการตรวจสอบของคุณ</h2></div><a href="{{ url_for('history') }}" class="hidden items-center gap-1 text-sm font-medium text-primary hover:underline sm:flex">ดูสถิติทั้งหมด <span class="material-symbols-outlined text-base">arrow_forward</span></a></div><div id="analyticsError" class="mb-5 hidden rounded-xl border border-error/30 bg-error/10 p-4 text-sm text-error">เกิดข้อผิดพลาดในการโหลดสถิติ</div><div id="analyticsSkeleton" class="animate-pulse"><div class="grid grid-cols-2 gap-3 lg:grid-cols-4">{% for i in range(4) %}<div class="h-24 rounded-2xl border border-outline bg-surface"></div>{% endfor %}</div></div><div id="analyticsContent" class="hidden opacity-0 transition-opacity duration-700"><div class="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4"><div class="glass-panel rounded-2xl border border-outline p-4"><p class="text-xs text-on-surface-variant">ตรวจสอบทั้งหมด</p><p id="stat-total" class="mt-2 text-3xl font-semibold">0</p></div><div class="glass-panel rounded-2xl border border-outline p-4"><p class="text-xs text-on-surface-variant">ความเสี่ยงสูง</p><p id="stat-high" class="mt-2 text-3xl font-semibold text-error">0</p></div><div class="glass-panel rounded-2xl border border-outline p-4"><p class="text-xs text-on-surface-variant">ควรระวัง</p><p id="stat-medium" class="mt-2 text-3xl font-semibold text-warning">0</p></div><div class="glass-panel rounded-2xl border border-outline p-4"><p class="text-xs text-on-surface-variant">ปลอดภัย</p><p id="stat-low" class="mt-2 text-3xl font-semibold text-primary">0</p></div></div><div class="grid gap-4 lg:grid-cols-2"><div class="glass-panel rounded-2xl border border-outline p-5 lg:col-span-2"><div class="mb-4"><h3 class="text-base font-semibold">ประเภทภัยคุกคามที่พบ</h3><p class="mt-1 text-xs text-on-surface-variant">สัดส่วนจากผลการตรวจสอบทั้งหมด</p></div><div id="threatChartsGrid" class="grid min-h-24 grid-cols-2 gap-3 sm:grid-cols-4"></div></div><div class="glass-panel rounded-2xl border border-outline p-5"><h3 class="text-base font-semibold">โดเมนที่พบมากที่สุด</h3><div class="mt-4 h-52"><canvas id="domainChart"></canvas></div></div><div class="glass-panel rounded-2xl border border-outline p-5"><h3 class="text-base font-semibold">ลิงก์ที่ถูกตรวจสอบบ่อย</h3><div class="mt-4 h-52"><canvas id="topSitesChart"></canvas></div></div></div></div></div></div></section>
 {% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/home.js') }}"></script>
-{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/home.js') }}"></script>{% endblock %}

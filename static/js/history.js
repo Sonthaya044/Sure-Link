@@ -118,6 +118,7 @@ function showHistoryDetail(index) {
     if (reportBtn) {
         reportBtn.onclick = function(e) {
             e.preventDefault();
+            sessionStorage.setItem('openingHistoryReport', 'true');
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/scan';
@@ -126,6 +127,11 @@ function showHistoryDetail(index) {
             input.name = 'url';
             input.value = item.url;
             form.appendChild(input);
+            const historyInput = document.createElement('input');
+            historyInput.type = 'hidden';
+            historyInput.name = 'from_history';
+            historyInput.value = '1';
+            form.appendChild(historyInput);
             document.body.appendChild(form);
             form.submit();
         };
