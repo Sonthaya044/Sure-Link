@@ -258,4 +258,4 @@ def scan_url():
 def ratelimit_handler(e): return render_template('home.html', error="คุณตรวจสอบลิงก์ถี่เกินไป กรุณารอสักครู่")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5004)
+    app.run(debug=True, port=5000)
