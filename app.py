@@ -16,7 +16,7 @@ ENV_PATH = os.path.join(BASE_DIR, '.env')
 DB_PATH  = os.path.join(BASE_DIR, 'securescan.db')
 LOG_PATH = os.path.join(BASE_DIR, 'scan_backend.log')
 
-load_dotenv(ENV_PATH)
+load_dotenv(ENV_PATH, override=True)
 VT_API_KEY = os.getenv("VT_API_KEY")
 
 app = Flask(__name__)
@@ -116,6 +116,8 @@ def scan_with_virustotal(url):
 
     try:
         cached_response = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=15)
+        if cached_response.status_code in (401, 403):
+            raise ValueError("VirusTotal API key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน")
         if cached_response.status_code == 200:
             attr = cached_response.json().get('data', {}).get('attributes', {})
             stats = attr.get('last_analysis_stats', {})
@@ -125,6 +127,8 @@ def scan_with_virustotal(url):
 
     submit_headers = {**headers, "content-type": "application/x-www-form-urlencoded"}
     submit_response = requests.post("https://www.virustotal.com/api/v3/urls", data={"url": url}, headers=submit_headers, timeout=15)
+    if submit_response.status_code in (401, 403):
+        raise ValueError("VirusTotal API key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน")
     submit_response.raise_for_status()
 
     analysis_id = submit_response.json().get('data', {}).get('id')
@@ -251,7 +255,11 @@ def scan_url():
         data = scan_with_virustotal(url)
         save_to_db(data)
         return render_template('dashboard.html', data=data)
-    except Exception as e:
+    except ValueError as e:
+        logging.error("Scan configuration error: %s", e)
+        return render_template('home.html', error=str(e))
+    except Exception:
+        logging.exception("Scan failed for URL: %s", url)
         return render_template('home.html', error="ระบบไม่สามารถวิเคราะห์ URL ได้ในขณะนี้ กรุณาลองใหม่ภายหลัง")
 
 @app.errorhandler(429)
