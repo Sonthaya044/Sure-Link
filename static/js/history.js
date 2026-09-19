@@ -1,5 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadHistoryTable();
+
+    ['confirmModal', 'detailModal'].forEach((modalId) => {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.addEventListener('click', (event) => {
+            if (event.target !== modal) return;
+            if (modalId === 'confirmModal') closeConfirmModal();
+            else closeDetailModal();
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const detailModal = document.getElementById('detailModal');
+        const confirmModal = document.getElementById('confirmModal');
+        if (detailModal && !detailModal.classList.contains('hidden')) closeDetailModal();
+        else if (confirmModal && !confirmModal.classList.contains('hidden')) closeConfirmModal();
+    });
 });
 
 function loadHistoryTable() {
@@ -37,18 +55,22 @@ function loadHistoryTable() {
 
 function clearHistory() { 
     const modal = document.getElementById('confirmModal');
-    modal.classList.remove('hidden'); 
-    setTimeout(() => { 
-        modal.classList.remove('opacity-0'); 
-        document.getElementById('confirmModalContent').classList.remove('scale-95'); 
-    }, 10); 
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+    requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        document.getElementById('confirmModalContent').classList.remove('scale-95');
+    });
 }
 
 function closeConfirmModal() { 
     const modal = document.getElementById('confirmModal');
+    if (!modal) return;
     modal.classList.add('opacity-0'); 
     document.getElementById('confirmModalContent').classList.add('scale-95'); 
-    setTimeout(() => modal.classList.add('hidden'), 300); 
+    document.body.classList.remove('modal-open');
+    setTimeout(() => modal.classList.add('hidden'), 300);
 }
 
 function executeClearHistory() { 
@@ -138,16 +160,18 @@ function showHistoryDetail(index) {
     }
 
     const modal = document.getElementById('detailModal');
-    modal.classList.remove('hidden'); 
+    if (!modal) return;
+    modal.classList.remove('hidden');
     document.body.classList.add('modal-open');
-    setTimeout(() => { 
+    requestAnimationFrame(() => {
         modal.classList.remove('opacity-0'); 
         document.getElementById('detailModalContent').classList.remove('scale-95'); 
-    }, 10);
+    });
 }
 
 function closeDetailModal() {
     const modal = document.getElementById('detailModal');
+    if (!modal) return;
     modal.classList.add('opacity-0'); 
     document.getElementById('detailModalContent').classList.add('scale-95'); 
     document.body.classList.remove('modal-open');
